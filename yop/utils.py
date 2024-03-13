@@ -4,7 +4,7 @@ from tabulate import tabulate
 from .types import Credential
 
 
-def get_combined_credentials(store_credentials: list[Credential], yubikey_credentials: list[Credential]) -> dict:
+def combine_credentials(store_credentials: list[Credential], yubikey_credentials: list[Credential]) -> dict:
     credentials = {cred: {"store_path": cred.store_path, "exists_in_yubikey": False} for cred in store_credentials}
 
     for cred in yubikey_credentials:
@@ -20,19 +20,19 @@ def generate_table(credential_data: dict) -> str:
     table_header = ["Credential", "Store", "YubiKey"]
     table = []
 
-    for cred_as_str, existence in credential_data.items():
+    for cred_as_str, meta in credential_data.items():
         table.append(
             [
                 cred_as_str,
-                existence["store_path"],
-                click.style("y", fg="green") if existence["exists_in_yubikey"] else click.style("n", fg="red"),
+                meta["store_path"],
+                click.style("y", fg="green") if meta["exists_in_yubikey"] else click.style("n", fg="red"),
             ]
         )
 
     return tabulate(table, headers=table_header)
 
 
-def get_actionable_credentials(credentials: dict) -> tuple[list[Credential], list[Credential]]:
+def find_actionable_credentials(credentials: dict) -> tuple[list[Credential], list[Credential]]:
     to_add = [cred for cred, meta in credentials.items() if not meta["exists_in_yubikey"]]
     to_delete = [cred for cred, meta in credentials.items() if meta["exists_in_yubikey"] and meta["store_path"] is None]
     return to_add, to_delete

@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 
 from .types import Store, YopError, YubiKey
-from .utils import generate_table, get_actionable_credentials, get_combined_credentials
+from .utils import combine_credentials, find_actionable_credentials, generate_table
 
 
 @click.command
@@ -21,12 +21,11 @@ from .utils import generate_table, get_actionable_credentials, get_combined_cred
     help="Really execute the sync (aka the opposite of dry-run)",
 )
 @click.option(
-    "-d",
     "--delete",
     is_flag=True,
     show_default=True,
     default=False,
-    help="Delete YubiKey credentials not present in store",
+    help="Delete YubiKey credentials not present in pass",
 )
 def cli(store: Path, really: bool, delete: bool) -> None:
     """
@@ -60,32 +59,29 @@ def cli(store: Path, really: bool, delete: bool) -> None:
         click.echo(click.style(e, fg="red"))
         sys.exit(1)
 
-    click.echo(f"Reading credentials in {store} and in {yubikey.info}. This may take a moment or two...")
+    click.echo(f"Reading credentials in {store} and in {yubikey.info}. This may take a moment...")
     click.echo()
 
     try:
-        store_credentials = credential_store.parse_credentials()
+        store_credentials = credential_store.collect_credentials()
     except YopError as e:
         click.echo(click.style(e, fg="red"))
         sys.exit(1)
 
     num_store_credentials = len(store_credentials)
+
     if num_store_credentials > 32:
-        click.echo(
-            click.style(
-                "YubiKey OTP app allows up to 32 credentials, but {num_store_credentials} credentials found in {store}",
-                fg="red",
-            )
-        )
+        msg = f"YubiKey OTP app allows up to 32 credentials, but {num_store_credentials} credentials found in {store}"
+        click.echo(click.style(msg, fg="red"))
         sys.exit(1)
 
-    yubikey_credentials = yubikey.get_credentials()
+    yubikey_credentials = yubikey.collect_credentials()
 
-    combined_credentials = get_combined_credentials(store_credentials, yubikey_credentials)
+    combined_credentials = combine_credentials(store_credentials, yubikey_credentials)
 
     click.echo(generate_table(combined_credentials))
 
-    to_add, to_delete = get_actionable_credentials(combined_credentials)
+    to_add, to_delete = find_actionable_credentials(combined_credentials)
 
     if not any((to_add, to_delete)):
         click.echo()
@@ -103,6 +99,10 @@ def cli(store: Path, really: bool, delete: bool) -> None:
                     cred.write_to_yubikey(session)
 
             if to_delete:
+                # Separate the two with an empty line
+                if to_add:
+                    click.echo()
+
                 if delete:
                     click.echo("Deleting credentials from YubiKey")
                     for cred in to_delete:

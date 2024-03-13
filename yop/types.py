@@ -1,7 +1,6 @@
 import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from functools import total_ordering
 from pathlib import Path
 from typing import Iterator, Optional
 
@@ -23,7 +22,6 @@ class YopError(Exception):
 
 
 @dataclass
-@total_ordering
 class Credential:
     issuer: str
     name: str
@@ -39,17 +37,12 @@ class Credential:
 
         return self.issuer == other.issuer and self.name == other.name
 
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, Credential):
-            return NotImplemented
-        return (self.issuer.lower(), self.name.lower()) < (other.issuer.lower(), other.name.lower())
-
     def __repr__(self) -> str:
         secret = None if self.secret is None else "<REDACTED>"
         return f"Credential(issuer='{self.issuer}', name='{self.name}', secret={secret})"
 
     def __str__(self) -> str:
-        return f"{self.issuer}:{self.name}"
+        return self.id
 
     @property
     def id(self) -> str:
@@ -113,9 +106,9 @@ class Store:
 
     def __post_init__(self) -> None:
         if not (self.path / ".gpg-id").exists():
-            raise YopError(f"{self.path} is not a password store directory")
+            raise YopError(f"{self.path} is not a pass directory")
 
-    def parse_credentials(self) -> list[Credential]:
+    def collect_credentials(self) -> list[Credential]:
         credentials = []
 
         for gpg_file in Path(self.path).rglob("*.gpg"):
@@ -164,6 +157,6 @@ class YubiKey:
         with self.get_connection() as conn:
             yield OathSession(conn)
 
-    def get_credentials(self) -> list[Credential]:
+    def collect_credentials(self) -> list[Credential]:
         with self.get_session() as session:
             return [Credential.from_yubikey_credential(c) for c in session.list_credentials()]
