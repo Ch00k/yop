@@ -26,8 +26,8 @@ def generate_table(credential_data: Dict) -> str:
         table.append(
             [
                 cred_as_str,
-                meta["store_path"],
-                click.style("y", fg="green") if meta["exists_in_yubikey"] else click.style("n", fg="red"),
+                meta["store_path"] if meta["store_path"] else click.style("n/a", fg="red"),
+                "y" if meta["exists_in_yubikey"] else click.style("n", fg="red"),
             ]
         )
 

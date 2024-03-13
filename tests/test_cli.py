@@ -26,7 +26,7 @@ Credential                   Store        YubiKey
 firefox.com:rick@c137.space  firefox.com  y
 amazon.com:morty@aol.com     amazon.com   y
 google.com:summer@aol.com    google.com   n
-ebay.com:jerry@aol.com                    y
+ebay.com:jerry@aol.com       n/a          y
 """
 
     return [store_cred_1, store_cred_2, store_cred_3], [yubikey_cred_1, yubikey_cred_2, yubikey_cred_3], output

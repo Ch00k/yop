@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yop"
-version = "0.0.1"
+version = "0.0.2"
 description = "Yubikey OTP Provisioner"
 authors = ["Andrii Yurchuk <ay@mntw.re>"]
 license = "Unlicense"
