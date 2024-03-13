@@ -7,7 +7,7 @@ license = "Unlicense"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.8.1"          # flake8 >=7.0.0 needs Python >=3.8.1
 yubikey-manager = "^5.3.0"
 click = "^8.1.7"
 tabulate = "^0.9.0"

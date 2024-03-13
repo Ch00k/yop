@@ -2,7 +2,7 @@ import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator, List, Optional, Tuple
 
 from ykman.base import YkmanDevice
 from ykman.device import list_all_devices
@@ -64,7 +64,7 @@ class Credential:
         return Credential(issuer=yubikey_credential.issuer, name=yubikey_credential.name)
 
     @staticmethod
-    def parse_credential_data(data: str) -> tuple[str, str]:
+    def parse_credential_data(data: str) -> Tuple[str, str]:
         lines = [line.strip() for line in data.splitlines() if not line.isspace()]
         if not lines:
             raise CredentialParseError("File is empty")
@@ -108,7 +108,7 @@ class Store:
         if not (self.path / ".gpg-id").exists():
             raise YopError(f"{self.path} is not a pass directory")
 
-    def collect_credentials(self) -> list[Credential]:
+    def collect_credentials(self) -> List[Credential]:
         credentials = []
 
         for gpg_file in Path(self.path).rglob("*.gpg"):
@@ -157,6 +157,6 @@ class YubiKey:
         with self.get_connection() as conn:
             yield OathSession(conn)
 
-    def collect_credentials(self) -> list[Credential]:
+    def collect_credentials(self) -> List[Credential]:
         with self.get_session() as session:
             return [Credential.from_yubikey_credential(c) for c in session.list_credentials()]

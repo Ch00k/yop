@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List, Tuple
 from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
@@ -7,7 +8,7 @@ from yop.cli import cli
 from yop.types import Credential
 
 
-def create_test_data() -> tuple[list[Credential], list[Credential], str]:
+def create_test_data() -> Tuple[List[Credential], List[Credential], str]:
     store_cred_1 = Credential(
         issuer="firefox.com", name="rick@c137.space", secret="foo", store_path=Path("firefox.com")
     )
@@ -34,8 +35,8 @@ ebay.com:jerry@aol.com                    y
 def configure_mocks(
     mock_store: MagicMock,
     mock_yubikey: MagicMock,
-    store_credentials: list[Credential],
-    yubikey_credentials: list[Credential],
+    store_credentials: List[Credential],
+    yubikey_credentials: List[Credential],
 ) -> MagicMock:
     mock_store.return_value.collect_credentials.return_value = store_credentials
 
