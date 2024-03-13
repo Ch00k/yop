@@ -9,7 +9,7 @@ from ykman.device import list_all_devices
 from yubikit.core.smartcard import SmartCardConnection
 from yubikit.oath import HASH_ALGORITHM, OATH_TYPE
 from yubikit.oath import Credential as YubikeyCredential
-from yubikit.oath import CredentialData, OathSession
+from yubikit.oath import CredentialData, OathSession, parse_b32_key
 from yubikit.support import get_name, read_info
 
 
@@ -70,6 +70,10 @@ class Credential:
             raise CredentialParseError("File is empty")
 
         secret = lines.pop(0)
+        try:
+            parse_b32_key(secret)
+        except Exception:
+            raise CredentialParseError("Value found is not an OTP secret")
 
         if not lines:
             raise CredentialParseError("File does not contain a username")
