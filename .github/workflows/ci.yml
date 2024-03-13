@@ -39,17 +39,7 @@ jobs:
 
       - run: poetry run pytest -s
 
-  publish:
-    if: github.ref_type == 'tag'
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - run: poetry publish --build
+        if: github.ref_type == 'tag' && matrix.python-version == '3.12'
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
